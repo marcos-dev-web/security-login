@@ -1,0 +1,80 @@
+#!/bin/bash
+
+text="";
+PATH_TO_SAVE_USER="$HOME/.login";
+PATH_TO_SAVE_PASS="$HOME/.pass";
+
+encrypt_text() {
+	text=$(echo -n "$1" | md5sum | sed -e s/\\s//g | cut -d '-' -f1);
+}
+
+verify_login() {
+	if [ -e $PATH_TO_SAVE_USER ] && [ -e $PATH_TO_SAVE_PASS ]; then
+		return 1;
+	else
+		return 0;
+	fi
+}
+
+create_account() {
+	clear;
+	printf "\n\t\t\e[1;36mCreate an account\n\n\n"
+
+	printf "\e[1;32mType your username:\e[0m ";
+	read login;
+
+	printf "\e[1;32mType your password:\e[0m ";
+	read pass;
+
+	encrypt_text $login
+	echo -n $text > $PATH_TO_SAVE_USER
+
+	encrypt_text $pass
+	echo -n $text > $PATH_TO_SAVE_PASS
+
+	if [ $? -eq 0 ]; then
+		printf "\n\n\e[1;32mAccount created!\n\n";
+		exit 0
+	else
+		printf "\n\n\e[1;31mAccount not created!\n\n";
+		exit 1
+	fi
+}
+
+make_login() {
+	clear;
+	printf "\n\t\t\e[1;36mMake your login\n\n\n"
+
+	printf "\e[1;32mType your username:\e[0m ";
+	read login;
+
+	printf "\e[1;32mType your password:\e[0m ";
+	read pass;
+
+	encrypt_text $login
+	to_cmp=$(cat $PATH_TO_SAVE_USER)
+
+	if [ "$text" = "$to_cmp" ]; then
+		encrypt_text $pass
+		to_cmp=$(cat $PATH_TO_SAVE_PASS)
+
+		if [ "$text" = "$to_cmp" ]; then
+			printf "\n\n\t\t\e[1;36mLogin successfuly\n\n"
+			exit 0
+		else
+			printf "\n\n\t\t\e[1;31mLogin Falied\n\n"
+			exit 1
+		fi
+	else
+		printf "\n\n\t\t\e[1;31mLogin Falied\n\n"
+		exit 1
+	fi
+}
+
+verify_login
+
+if [ $? -eq 1 ]; then
+	make_login
+else
+	create_account
+fi
