@@ -4,11 +4,13 @@ text="";
 PATH_TO_SAVE_USER="$HOME/.login";
 PATH_TO_SAVE_PASS="$HOME/.pass";
 
-encrypt_text() {
+# to that works, call the function passing the parameter to
+# encode and get this value from variable "text"
+encode_text() {
 	text=$(echo -n "$1" | md5sum | sed -e s/\\s//g | cut -d '-' -f1);
 }
 
-verify_login() {
+handleAccess() {
 	if [ -e $PATH_TO_SAVE_USER ] && [ -e $PATH_TO_SAVE_PASS ]; then
 		return 1;
 	else
@@ -26,10 +28,10 @@ create_account() {
 	printf "\e[1;32mType your password:\e[0m ";
 	read pass;
 
-	encrypt_text $login
+	encode_text $login
 	echo -n $text > $PATH_TO_SAVE_USER
 
-	encrypt_text $pass
+	encode_text $pass
 	echo -n $text > $PATH_TO_SAVE_PASS
 
 	if [ $? -eq 0 ]; then
@@ -51,11 +53,11 @@ make_login() {
 	printf "\e[1;32mType your password:\e[0m ";
 	read pass;
 
-	encrypt_text $login
+	encode_text $login
 	to_cmp=$(cat $PATH_TO_SAVE_USER)
 
 	if [ "$text" = "$to_cmp" ]; then
-		encrypt_text $pass
+		encode_text $pass
 		to_cmp=$(cat $PATH_TO_SAVE_PASS)
 
 		if [ "$text" = "$to_cmp" ]; then
@@ -71,7 +73,9 @@ make_login() {
 	fi
 }
 
-verify_login
+# verify if user has an account if yes: "$?" returns 1
+# if not: "$?" returns 0
+handleAccess
 
 if [ $? -eq 1 ]; then
 	make_login
